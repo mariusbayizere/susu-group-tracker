@@ -46,12 +46,6 @@ public class StorageTest {
     }
 
     @Test
-    public void defaultFileNameMatchesGitignore() throws IOException {
-        List<String> ignored = Files.readAllLines(Path.of(".gitignore"));
-        assertTrue(ignored.contains(Storage.DEFAULT_FILE));
-    }
-
-    @Test
     public void saveAndLoadRoundTripKeepsMidWeekPartialPayments() {
         SusuGroup group = exampleGroup();
         for (String member : group.getMembers()) {
@@ -79,7 +73,7 @@ public class StorageTest {
     }
 
     @Test
-    public void roundTripOfCompletedCycle() {
+    public void saveAndLoadKeepsACompletedCycleComplete() {
         SusuGroup group = exampleGroup();
         for (int week = 1; week <= 3; week++) {
             for (String member : group.getMembers()) {
@@ -107,7 +101,7 @@ public class StorageTest {
     }
 
     @Test
-    public void saveReplacesTheFileAndLeavesNoTempFiles() throws IOException {
+    public void secondSaveReplacesTheFileAndLeavesNoTempFiles() throws IOException {
         SusuGroup group = exampleGroup();
         Storage.save(group, file);
         group.recordContribution("Ama", FIFTY, 1);

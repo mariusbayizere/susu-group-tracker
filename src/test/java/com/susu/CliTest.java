@@ -1,5 +1,6 @@
 package com.susu;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -9,6 +10,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,6 +43,27 @@ public class CliTest {
         lastOut = out.toString(StandardCharsets.UTF_8);
         lastErr = err.toString(StandardCharsets.UTF_8);
         return code;
+    }
+
+    private void createAmaKofiEsiGroup() {
+        assertEquals(0, run("create", "50.00"));
+        assertEquals(0, run("add-member", "Ama"));
+        assertEquals(0, run("add-member", "Kofi"));
+        assertEquals(0, run("add-member", "Esi"));
+    }
+
+    private Path dataFile() {
+        return Path.of(file);
+    }
+
+    /**
+     * Sets the data file's time stamp to the year 2000. Every save replaces the file and gives
+     * it a new time stamp, so if the time is still 2000 afterwards, nothing was written.
+     */
+    private FileTime markFileAsOld() throws Exception {
+        FileTime old = FileTime.fromMillis(946_684_800_000L);
+        Files.setLastModifiedTime(dataFile(), old);
+        return old;
     }
 
     private void assertOut(String text) {
@@ -112,7 +135,7 @@ public class CliTest {
     }
 
     @Test
-    public void invalidUsageExitsWithTwo() {
+    public void invalidUsageExitsWithTwoAndAFriendlyMessage() {
         assertEquals(2, run("report"));
         assertErr("No group found");
         assertEquals(2, run("dance"));
@@ -141,26 +164,85 @@ public class CliTest {
     }
 
     @Test
-    public void closingTheLastWeekReportsCycleComplete() {
-        run("create", "10");
-        run("add-member", "Ama");
-        run("add-member", "Kofi");
-        for (int week = 1; week <= 2; week++) {
-            run("pay", "Ama", "10");
-            run("pay", "Kofi", "10");
+    public void fullThreeWeekCycleThroughTheCommandLineEndsWithCycleComplete() {
+        createAmaKofiEsiGroup();
+        String[] expectedRecipients = {"Ama", "Kofi", "Esi"};
+        for (int week = 1; week <= 3; week++) {
+            for (String member : expectedRecipients) {
+                assertEquals(0, run("pay", member, "50.00"));
+            }
             assertEquals(0, run("close-week"));
+            assertOut("Week " + week + " closed. " + expectedRecipients[week - 1] + " receives GHS 150.00.");
         }
-        assertOut("Kofi receives GHS 20.00");
-        assertOut("Cycle complete");
+        assertOut("Cycle complete: every member has received the pot once.");
+        assertFalse(lastOut.contains("begins"));
+
         assertEquals(2, run("pay", "Ama", "10"));
         assertErr("cycle is complete");
+        assertEquals(2, run("close-week"));
+        assertErr("cycle is complete");
+
         assertEquals(0, run("report"));
         assertOut("Cycle complete");
-        assertOut("Week 2: Kofi received GHS 20.00");
+        assertOut("Week 1: Ama received GHS 150.00");
+        assertOut("Week 2: Kofi received GHS 150.00");
+        assertOut("Week 3: Esi received GHS 150.00");
     }
 
     @Test
-    public void helpPrintsUsageAndSucceeds() {
+    public void partialPaymentsAddUpToExactlyFiftyAndThePotIsExactly150() {
+        createAmaKofiEsiGroup();
+        assertEquals(0, run("pay", "Esi", "10.00"));
+        assertOut("Esi still owes 40.00");
+        assertEquals(0, run("pay", "Esi", "24.50"));
+        assertOut("Esi still owes 15.50");
+        assertEquals(0, run("pay", "Esi", "15.50"));
+        assertOut("Esi has paid in full");
+
+        assertEquals(0, run("report"));
+        assertOut("Paid in full: Esi");
+        assertOut("Ama owes 50.00");
+        assertOut("Kofi owes 50.00");
+
+        run("pay", "Ama", "50");
+        run("pay", "Kofi", "50");
+        assertEquals(0, run("close-week"));
+        assertOut("Ama receives GHS 150.00.");
+    }
+
+    @Test
+    public void failedPaymentsDoNotChangeTheSavedFile() throws Exception {
+        createAmaKofiEsiGroup();
+        run("pay", "Ama", "20");
+        FileTime before = markFileAsOld();
+        byte[] contents = Files.readAllBytes(dataFile());
+
+        assertEquals(2, run("pay", "Ama", "40"));
+        assertEquals(2, run("pay", "Yaw", "10"));
+        assertEquals(2, run("pay", "Ama", "0"));
+        assertEquals(2, run("pay", "Ama", "abc"));
+        assertEquals(2, run("pay", "Ama", "10", "--week", "2"));
+        assertEquals(2, run("add-member", "Yaw"));
+
+        assertEquals(before, Files.getLastModifiedTime(dataFile()));
+        assertArrayEquals(contents, Files.readAllBytes(dataFile()));
+    }
+
+    @Test
+    public void blockedCloseWeekDoesNotWriteToDisk() throws Exception {
+        createAmaKofiEsiGroup();
+        run("pay", "Ama", "50");
+        FileTime before = markFileAsOld();
+        byte[] contents = Files.readAllBytes(dataFile());
+
+        assertEquals(1, run("close-week"));
+
+        assertEquals(before, Files.getLastModifiedTime(dataFile()));
+        assertArrayEquals(contents, Files.readAllBytes(dataFile()));
+    }
+
+    @Test
+    public void helpPrintsUsageAndExitsWithZero() {
         assertEquals(0, run("help"));
         assertOut("Usage:");
         assertOut("close-week");
