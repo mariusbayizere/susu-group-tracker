@@ -1,9 +1,8 @@
 package com.susu;
 
 /**
- * Entry point of the Susu Group Tracker.
- *
- * <p>Placeholder for the project setup; the real command line arrives with Cli.java.
+ * Entry point of the Susu Group Tracker. All the work happens in {@link Cli}; this class
+ * only turns its result into the process exit code.
  */
 public final class Main {
 
@@ -11,6 +10,6 @@ public final class Main {
     }
 
     public static void main(String[] args) {
-        System.out.println("Susu Group Tracker - setup OK");
+        System.exit(new Cli(System.out, System.err).run(args));
     }
 }

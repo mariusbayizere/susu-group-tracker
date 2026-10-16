@@ -5,6 +5,7 @@ import java.util.List;
 /**
  * A read-only snapshot of the group, used to print the report.
  *
+ * @param name               the group's name
  * @param weeklyContribution what each member pays per week, in pesewas
  * @param currentWeek        the open week (when the cycle is complete, the week after the last one)
  * @param cycleComplete      true once every member has received the pot
@@ -16,6 +17,7 @@ import java.util.List;
  * @param payouts            payout history, oldest first
  */
 public record Report(
+        String name,
         long weeklyContribution,
         int currentWeek,
         boolean cycleComplete,

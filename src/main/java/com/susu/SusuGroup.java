@@ -22,6 +22,11 @@ public class SusuGroup {
     /** The smallest group that makes sense: one member pays, another receives. */
     public static final int MIN_MEMBERS = 2;
 
+    /** Name used when the group is created without one. */
+    public static final String DEFAULT_NAME = "Susu Group";
+
+    private final String name;
+
     private final long weeklyContribution;
 
     /** Lookup key (lower case, single spaces) to the name as the member typed it, in joining order. */
@@ -35,14 +40,26 @@ public class SusuGroup {
     private int currentWeek = 1;
 
     /**
-     * Creates a group in week 1 with no members.
+     * Creates a group called {@value #DEFAULT_NAME} in week 1 with no members.
      *
      * @param weeklyContribution what each member pays per week, in pesewas; must be above zero
      */
     public SusuGroup(long weeklyContribution) {
+        this(DEFAULT_NAME, weeklyContribution);
+    }
+
+    /**
+     * Creates a named group in week 1 with no members.
+     *
+     * @param name               a label for the group; blank means {@value #DEFAULT_NAME}
+     * @param weeklyContribution what each member pays per week, in pesewas; must be above zero
+     */
+    public SusuGroup(String name, long weeklyContribution) {
         if (weeklyContribution <= 0) {
             throw new SusuException("The weekly contribution must be greater than zero.");
         }
+        String cleaned = cleanName(name);
+        this.name = cleaned.isEmpty() ? DEFAULT_NAME : cleaned;
         this.weeklyContribution = weeklyContribution;
     }
 
@@ -166,7 +183,7 @@ public class SusuGroup {
                 }
             }
         }
-        return new Report(weeklyContribution, currentWeek, isCycleComplete(), getMembers(),
+        return new Report(name, weeklyContribution, currentWeek, isCycleComplete(), getMembers(),
                 paidInFull, owing, nextRecipient(), pot(), payouts);
     }
 
@@ -183,6 +200,10 @@ public class SusuGroup {
     /** Pesewas the member has paid so far in the current week. */
     public long amountPaid(String member) {
         return paidThisWeek.getOrDefault(requireMember(member), 0L);
+    }
+
+    public String getName() {
+        return name;
     }
 
     public long getWeeklyContribution() {
