@@ -1,0 +1,21 @@
+# Maven build output
+target/
+
+# Compiled classes and logs
+*.class
+*.log
+
+# IDE and editor files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS files
+.DS_Store
+
+# Local group data saved by the program (your data, not source code)
+susu-group.txt
+*.tmp
