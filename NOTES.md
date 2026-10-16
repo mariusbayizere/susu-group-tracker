@@ -108,8 +108,10 @@ Each item says what the program does and why.
 24. **One group per data file.** The default file is `susu-group.txt` in the current folder;
     `--file PATH` chooses another file, so separate groups can live in separate files.
 25. **`Storage.DEFAULT_FILE` must match the line in `.gitignore`.** The data file is a user's
-    savings data, not source code, so it must never be committed. I checked this by hand
-    with `git check-ignore -v susu-group.txt`. I deliberately did not make this an
+    savings data, not source code, so it must never be committed. `.gitignore` also
+    ignores every `.txt` file in the project root (`/*.txt`), so a file chosen with
+    `--file`, like `office.txt` in the README, is not committed by accident either. I
+    checked this by hand with `git check-ignore -v susu-group.txt office.txt`. I deliberately did not make this an
     automated test, because a test that reads the project's `.gitignore` depends on a file
     outside its temp folder.
 26. **File format:** plain text, one record per line, fields separated by tabs. It has a

@@ -68,7 +68,8 @@ Amounts are plain numbers with at most 2 decimals: `50`, `50.5` and `50.00` are 
 
 The group is saved to `susu-group.txt` in the current folder after every successful
 change (or to the file given with `--file`). This file is your data, not source code, so
-it is listed in `.gitignore` and never committed.
+it is listed in `.gitignore` and never committed. Any other `.txt` file in the project
+folder (for example one chosen with `--file office.txt`) is ignored too.
 
 ## Example session (from the challenge brief)
 
