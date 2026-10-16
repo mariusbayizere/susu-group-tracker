@@ -16,6 +16,9 @@ target/
 # OS files
 .DS_Store
 
-# Local group data saved by the program (your data, not source code)
+# Local group data saved by the program (your data, not source code).
+# susu-group.txt is the default (Storage.DEFAULT_FILE); /*.txt also covers files
+# chosen with --file in the project folder, such as office.txt in the README.
 susu-group.txt
+/*.txt
 *.tmp
