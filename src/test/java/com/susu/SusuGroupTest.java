@@ -128,6 +128,7 @@ public class SusuGroupTest {
     public void memberNamesAreMatchedIgnoringCaseAndSpacesWhenPaying() {
         group.recordContribution("  esi ", Money.parse("5"), 1);
         assertEquals(Money.parse("5"), group.amountPaid("ESI"));
+        assertEquals("Esi", group.memberName(" eSI "));
     }
 
     @Test

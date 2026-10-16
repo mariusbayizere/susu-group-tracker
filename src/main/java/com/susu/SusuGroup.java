@@ -197,6 +197,11 @@ public class SusuGroup {
         return members.size() >= MIN_MEMBERS && payouts.size() == members.size();
     }
 
+    /** The member's name as stored, so "  esi " gives "Esi". Unknown members are rejected. */
+    public String memberName(String member) {
+        return members.get(requireMember(member));
+    }
+
     /** Pesewas the member has paid so far in the current week. */
     public long amountPaid(String member) {
         return paidThisWeek.getOrDefault(requireMember(member), 0L);

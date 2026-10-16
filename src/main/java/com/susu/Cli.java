@@ -121,7 +121,7 @@ public class Cli {
         int week = a.week != null ? a.week : group.getCurrentWeek();
         long stillOwed = group.recordContribution(a.positionals.get(0), amount, week);
         Storage.save(group, a.file);
-        String member = findMember(group, a.positionals.get(0));
+        String member = group.memberName(a.positionals.get(0));
         out.print("Recorded GHS " + Money.format(amount) + " from " + member + " for week " + week + ". ");
         out.println(stillOwed == 0
                 ? member + " has paid in full."
@@ -187,15 +187,6 @@ public class Cli {
             }
         }
         return OK;
-    }
-
-    /** The member's name as stored, so output shows "Esi" even if the user typed "esi". */
-    private static String findMember(SusuGroup group, String typed) {
-        String wanted = typed.trim().replaceAll("\\s+", " ");
-        return group.getMembers().stream()
-                .filter(m -> m.equalsIgnoreCase(wanted))
-                .findFirst()
-                .orElse(wanted);
     }
 
     /** The parsed command line: the command, its positional arguments and the options. */
